@@ -17,7 +17,6 @@ void Motor::setVelocity(double vel ){
 }
 void Motor::update(){
   int speed = abs((int)(velocity));
-  //int speed=250;
   if ( speed != oldSpeed ){
     analogWrite(enablePin, speed );
     if ( velocity > 0 ){

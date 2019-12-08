@@ -8,27 +8,32 @@
 #include "I2CAnything.h"
 #include "MotorCommands.h"
 
-#define LEFT_MOTOR_ENCODER_PIN 2
-#define LEFT_MOTOR_ENABLE 11
-#define LEFT_MOTOR_A 10
-#define LEFT_MOTOR_B 9
-#define RIGHT_MOTOR_ENCODER_PIN 3
-#define RIGHT_MOTOR_A 8
-#define RIGHT_MOTOR_B 7
-#define RIGHT_MOTOR_ENABLE 6
-#define DEBUG_INTERVAL_MS 200
-#define UPPER_MOTOR_LIMIT 255.0
-#define LOWER_MOTOR_LIMIT -255.0
+#define LEFT_MOTOR_ENCODER_PIN 3
+#define LEFT_MOTOR_ENABLE 6
+#define LEFT_MOTOR_A 8
+#define LEFT_MOTOR_B 7
 
+#define RIGHT_MOTOR_ENCODER_PIN 2
+#define RIGHT_MOTOR_ENABLE 11
+#define RIGHT_MOTOR_A 10
+#define RIGHT_MOTOR_B 9
+
+#define DEBUG_INTERVAL_MS 500
+
+#define PACKET_SIZE 9
 
 auto timer = timer_create_default(); // create a timer with default settings
-double KP=0.5;
-double KI=1.0;
+double KP=0.4;
+double KI=0.08; //0.08 
 double KD=0.00;
 
 
-Motor_Command motorCommand {0.0, 0.0,false};
-boolean haveNewMotorCommand= false;
+volatile Motor_Command motorCommand {0.0, 0.0,false};
+volatile boolean haveNewMotorCommand= false;
+
+volatile float i2c_leftVelocity;
+volatile float i2c_rightVelocity;
+volatile byte i2c_enable;
 
 OptiWheelFeedback leftEncoder;
 OptiWheelFeedback rightEncoder;
@@ -49,8 +54,10 @@ void rightEncoderISR() {
 }
 
 void receiveEvent(int howMany){
-  if ( howMany >= sizeof(Motor_Command) ){
-      I2C_readAnything (motorCommand);
+  if(howMany >= (sizeof(i2c_leftVelocity) + sizeof(i2c_rightVelocity) + sizeof(i2c_enable))){
+      I2C_readAnything (i2c_leftVelocity);
+      I2C_readAnything (i2c_rightVelocity);
+      I2C_readAnything (i2c_enable);
       haveNewMotorCommand = true;
   }
 }
@@ -71,33 +78,40 @@ void setupMotorPins(){
 
 void setup() 
 {
-    //temporary
-    left.setTargetVelocity(2500.0);
+    
     Wire.begin(MOTOR_CONTROLLER_ADDRESS );
+    Wire.setClock(100000);
     Serial.begin(57600);
     Wire.onReceive(receiveEvent);
     setupMotorPins();
     timer.every(DEBUG_INTERVAL_MS, showDebugData);
 
 }
+void debugSpeeds(){
+    left.setTargetVelocity(3000);
+    right.setTargetVelocity(3000);
+    left.setEnabled(1);
+    right.setEnabled(1);  
+}
 
 void loop()
 {   
     if ( haveNewMotorCommand ){
-      left.setTargetVelocity(motorCommand.leftVelocity);
-      right.setTargetVelocity(motorCommand.rightVelocity);    
-      left.setEnabled(motorCommand.enabled);
-      right.setEnabled(motorCommand.enabled);  
+      Serial.println("Data");
+      left.setTargetVelocity(i2c_leftVelocity);
+      right.setTargetVelocity(i2c_rightVelocity);    
+      left.setEnabled((int)i2c_enable);
+      right.setEnabled((int)i2c_enable);  
       haveNewMotorCommand = false;
     }
     
     left.update();
     right.update();
     timer.tick();
-    //delay(1);
+    delay(1);
 }
 
 void showDebugData(void *) {
   left.debug('L');
-  //right.debug('R');
+  right.debug('R');
 }

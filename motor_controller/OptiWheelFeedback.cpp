@@ -1,8 +1,8 @@
 #include "OptiWheelFeedback.h"
 #include <Arduino.h>
-#define STALL_MICROS 60000
-#define SMALLEST_REAL_UPDATE_MICROS 1
-#define ENCODER_SLOTS 1.0
+#define STALL_MICROS 100000
+#define SMALLEST_REAL_UPDATE_MICROS 500
+#define ENCODER_SLOTS 2.0
 #define SECONDS_PER_MINUTE 60.0
 #define US_PER_MS 1000.0
 #define MS_PER_S 1000.0
@@ -16,13 +16,13 @@ OptiWheelFeedback::OptiWheelFeedback(){
 }
 
 void OptiWheelFeedback::pulse(){
-  //if ( (micros() - prevIsrUpdateMicros) > SMALLEST_REAL_UPDATE_MICROS ){
+  if ( (micros() - prevIsrUpdateMicros) > SMALLEST_REAL_UPDATE_MICROS ){
 		 pulseCount++;
      //if ( pulseCount > 10 ){
         hasNewData = true;
      //}
-     //prevIsrUpdateMicros = micros();
-  //}         
+     prevIsrUpdateMicros = micros();
+  }         
 }
 
 boolean OptiWheelFeedback::update(){

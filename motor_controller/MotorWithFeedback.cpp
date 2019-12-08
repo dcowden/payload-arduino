@@ -2,10 +2,10 @@
 #include <Arduino.h>
 #include <PID_v1.h>
 #include "Motor.h"
-#define PID_SAMPLE_TIME_MS 10
+#define PID_SAMPLE_TIME_MS 2
 #define UPPER_MOTOR_LIMIT 255.0
 #define LOWER_MOTOR_LIMIT 0
-
+#define MIN_COMMAND_SPEED_RPM 500.0
 MotorWithFeedback::MotorWithFeedback ( OptiWheelFeedback* the_encoder ,
      Motor* the_motor , double Kp, double Ki, double Kd ){
       
@@ -23,13 +23,14 @@ MotorWithFeedback::MotorWithFeedback ( OptiWheelFeedback* the_encoder ,
 }
 
 void MotorWithFeedback::setTargetVelocity(double target){
-  targetSpeed = abs(target);
-  if ( target < 0 ){
-    directionForward = false;
-  }
-  else{
-    directionForward = true;
-  }
+    targetSpeed = abs(target);
+    if ( target < 0 ){
+      directionForward = false;
+    }
+    else{
+      directionForward = true;
+    }    
+
 }
 void MotorWithFeedback::setEnabled(boolean en){
   enabled = en;
@@ -53,23 +54,29 @@ void MotorWithFeedback::debug(char id){
   Serial.println();
 }
 
-void MotorWithFeedback::update(){
-    boolean updated = encoder->update();
-    currentSpeed = encoder->getRPM();
-    if ( updated ){      
-      boolean updated = pid->Compute();
-      if ( updated ){
-        double out = outputCommand;
-        if ( directionForward < 0 ){
-          out = -outputCommand;
-        }
-        if ( enabled){
-          motor->setVelocity(out);
-        }
-        else{
-          motor->setVelocity(0.0);
-        }
+void MotorWithFeedback::update(){  
+    boolean speedUpdated = encoder->update();
+    currentSpeed = encoder->getRPM();    
+    //safety first!
+    if ( !enabled ){
+        motor->setVelocity(0.0);
+        outputCommand = 0;
+        return;
+    }
+    if ( targetSpeed < MIN_COMMAND_SPEED_RPM ){
+      motor->setVelocity(0.0);
+      outputCommand = 0;
+      return;
+    }
+
+    boolean pid_updated = pid->Compute();
+    if ( pid_updated ){
+      if ( directionForward  ){
+        motor->setVelocity(outputCommand);
       }
-      
-    }  
+      else{
+        motor->setVelocity(-outputCommand);
+      }
+    }      
+
 }
