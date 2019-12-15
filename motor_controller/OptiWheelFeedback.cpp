@@ -1,7 +1,7 @@
 #include "OptiWheelFeedback.h"
 #include <Arduino.h>
 #define STALL_MICROS 100000
-#define SMALLEST_REAL_UPDATE_MICROS 500
+#define SMALLEST_REAL_UPDATE_MICROS 200
 #define ENCODER_SLOTS 2.0
 #define SECONDS_PER_MINUTE 60.0
 #define US_PER_MS 1000.0

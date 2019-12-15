@@ -2,8 +2,8 @@
 #include <Arduino.h>
 #include <PID_v1.h>
 #include "Motor.h"
-#define PID_SAMPLE_TIME_MS 2
-#define UPPER_MOTOR_LIMIT 255.0
+#define PID_SAMPLE_TIME_MS 1
+#define UPPER_MOTOR_LIMIT 400.0
 #define LOWER_MOTOR_LIMIT 0
 #define MIN_COMMAND_SPEED_RPM 500.0
 MotorWithFeedback::MotorWithFeedback ( OptiWheelFeedback* the_encoder ,
@@ -47,7 +47,8 @@ double MotorWithFeedback::getTargetVelocity(){
 
 void MotorWithFeedback::debug(char id){
   Serial.print(id);
-  Serial.print(":\tSET "); Serial.print(getTargetVelocity());
+  Serial.print(":\tSETV "); Serial.print(getTargetVelocity());
+  Serial.print(":\tSET_S "); Serial.print(targetSpeed);
   Serial.print("\tACT "); Serial.print(currentSpeed);
   Serial.print("\tEN " ); Serial.print(enabled);
   Serial.print("\tCMD "); Serial.print(outputCommand );

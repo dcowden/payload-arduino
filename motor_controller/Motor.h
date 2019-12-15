@@ -1,17 +1,16 @@
 #include "Arduino.h"
+#include "DualVNH5019MotorShield.h"
 #ifndef Motor_h
 #define Motor_h
 class Motor{
 	public:
-		Motor ( int the_pinA, int the_pinB, int the_pinEnable );
+		Motor (DualVNH5019MotorShield* _theShield, boolean _isLeft);
 		void setVelocity( double velocity );
     double getVelocity();
 	private:
-		int pinA;
-		int pinB;
-		int enablePin;
-		int velocity;
-    int oldSpeed;
+    DualVNH5019MotorShield* motorShield;
+    double velocity;
+		boolean isLeft;
     void update();
 };
 #endif

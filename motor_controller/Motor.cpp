@@ -1,11 +1,12 @@
 #include "Motor.h"
 #include <Arduino.h>
-Motor::Motor ( int the_pinA, int the_pinB, int the_pinEnable ){
-	pinA = the_pinA;
-	pinB = the_pinB;
-	enablePin = the_pinEnable;
-	velocity = 0.0;
-  oldSpeed = 0;
+
+#define MIN_MOTOR_COMMAND -400.0
+#define MAX_MOTOR_COMMAND 400.0
+
+Motor::Motor ( DualVNH5019MotorShield* _theShield, boolean _isLeft){
+	motorShield = _theShield;
+	isLeft =  _isLeft;
 }
 
 double Motor::getVelocity(){
@@ -16,19 +17,20 @@ void Motor::setVelocity(double vel ){
   update();
 }
 void Motor::update(){
-  int speed = abs((int)(velocity));
-  if ( speed != oldSpeed ){
-    analogWrite(enablePin, speed );
-    if ( velocity > 0 ){
-      digitalWrite(pinA, HIGH);
-      digitalWrite(pinB, LOW);     
-    }
-    else{
-      digitalWrite(pinA, LOW);
-      digitalWrite(pinB, HIGH);    
-    }
-    oldSpeed = speed;      
-  }
-
+  
+   int v = (int)velocity;
+   if ( v > MAX_MOTOR_COMMAND ) v = MAX_MOTOR_COMMAND;
+   if ( v < MIN_MOTOR_COMMAND ) v = MIN_MOTOR_COMMAND;
+   //Serial.print("Setting Speed="); Serial.println(v);
+   if ( isLeft ){
+      motorShield->setM1Speed(v);       
+   }
+   else{
+      motorShield->setM2Speed(v);       
+   }
+   if ( motorShield->getM1Fault() || motorShield->getM2Fault() ){
+    Serial.print("FAULT!!!");
+      velocity = 0;
+   }
 
 }
