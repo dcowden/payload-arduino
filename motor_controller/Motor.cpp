@@ -1,8 +1,10 @@
 #include "Motor.h"
 #include <Arduino.h>
 
-#define MIN_MOTOR_COMMAND -400.0
-#define MAX_MOTOR_COMMAND 400.0
+//max output on the drives is actually 400. this prevents spikes
+//by avoiding the extra current
+#define MIN_MOTOR_COMMAND -220.0
+#define MAX_MOTOR_COMMAND 220.0
 
 Motor::Motor ( DualVNH5019MotorShield* _theShield, boolean _isLeft){
 	motorShield = _theShield;

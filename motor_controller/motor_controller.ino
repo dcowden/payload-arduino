@@ -93,8 +93,8 @@ void setup()
     //debugSpeeds();
 }
 void debugSpeeds(){
-    left.setTargetVelocity(6500);
-    right.setTargetVelocity(6500);
+    left.setTargetVelocity(300);
+    right.setTargetVelocity(300);
     left.setEnabled(1);
     right.setEnabled(1);  
 }
